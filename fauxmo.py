@@ -377,11 +377,13 @@ def office_lights_callback(action):
     # action=True   -> on
     # action=False  -> off
     # Custom code goes here to turn on/off office lights
+    return True
 
 def kitchen_lights_callback(action):
     # action=True   -> on
     # action=False  -> off
     # Custom code goes here to turn on/off kitchen lights
+    return True
 
 # Each entry is a list with the following elements:
 #
