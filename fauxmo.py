@@ -417,7 +417,7 @@ p.add(u)
 
 # Create our FauxMo virtual switch devices
 for one_faux in FAUXMOS:
-    if len(one_faux) == 1:
+    if len(one_faux) == 2:
         # a fixed port wasn't specified, use a dynamic one
         one_faux.append(0)
     switch = fauxmo(one_faux[0], u, p, None, one_faux[2], action_handler = one_faux[1])
