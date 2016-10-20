@@ -102,7 +102,7 @@ class poller:
             target = self.targets.get(one_ready[0], None)
             if target:
                 target.do_read(one_ready[0])
- 
+
 
 # Base class for a generic UPnP device. This is far from complete
 # but it supports either specified or automatic IP address and port
@@ -123,7 +123,7 @@ class upnp_device(object):
             del(temp_socket)
             dbg("got local address of %s" % upnp_device.this_host_ip)
         return upnp_device.this_host_ip
-        
+
 
     def __init__(self, listener, poller, port, root_url, server_version, persistent_uuid, other_headers = None, ip_address = None):
         self.listener = listener
@@ -170,7 +170,7 @@ class upnp_device(object):
 
     def get_name(self):
         return "unknown"
-        
+
     def respond_to_search(self, destination, search_target):
         dbg("Responding to search for %s" % self.get_name())
         date_str = email.utils.formatdate(timeval=None, localtime=False, usegmt=True)
@@ -191,7 +191,7 @@ class upnp_device(object):
         message += "\r\n"
         temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         temp_socket.sendto(message, destination)
- 
+
 
 # This subclass does the bulk of the work to mimic a WeMo switch on the network.
 
@@ -360,18 +360,28 @@ class upnp_broadcast_responder(object):
 # and off command are invoked respectively. It ignores any return data.
 
 class rest_api_handler(object):
-    def __init__(self, on_cmd, off_cmd):
-        self.on_cmd = on_cmd
-        self.off_cmd = off_cmd
+    def __init__(self, callback_function):
+        self.callback_function = callback_function
 
     def on(self):
-        r = requests.get(self.on_cmd)
-        return r.status_code == 200
+        return callback_function(True)
 
     def off(self):
-        r = requests.get(self.off_cmd)
-        return r.status_code == 200
+        return callback_function(False)
 
+#------------------------------------
+# CALLBACK FUNCTION DEFINITIONS START
+#------------------------------------
+
+def office_lights_callback(action):
+    # action=True   -> on
+    # action=False  -> off
+    # Custom code goes here to turn on/off office lights
+
+def kitchen_lights_callback(action):
+    # action=True   -> on
+    # action=False  -> off
+    # Custom code goes here to turn on/off kitchen lights
 
 # Each entry is a list with the following elements:
 #
@@ -384,8 +394,8 @@ class rest_api_handler(object):
 # list will be used.
 
 FAUXMOS = [
-    ['office lights', rest_api_handler('http://192.168.5.4/ha-api?cmd=on&a=office', 'http://192.168.5.4/ha-api?cmd=off&a=office')],
-    ['kitchen lights', rest_api_handler('http://192.168.5.4/ha-api?cmd=on&a=kitchen', 'http://192.168.5.4/ha-api?cmd=off&a=kitchen')],
+    ['office lights', rest_api_handler(office_lights_callback)],
+    ['kitchen lights', rest_api_handler(kitchen_lights_callback)],
 ]
 
 
@@ -405,7 +415,7 @@ p.add(u)
 
 # Create our FauxMo virtual switch devices
 for one_faux in FAUXMOS:
-    if len(one_faux) == 2:
+    if len(one_faux) == 1:
         # a fixed port wasn't specified, use a dynamic one
         one_faux.append(0)
     switch = fauxmo(one_faux[0], u, p, None, one_faux[2], action_handler = one_faux[1])
@@ -420,4 +430,3 @@ while True:
     except Exception, e:
         dbg(e)
         break
-
